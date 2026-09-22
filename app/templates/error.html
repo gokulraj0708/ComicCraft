@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong — ComicCraft{% endblock %}
+{% block content %}
+<section class="error-page shell">
+  <p class="error-code">{{ status_code }}</p>
+  <p class="eyebrow"><span></span> GENERATION INTERRUPTED</p>
+  <h1>That panel needs a redraw.</h1>
+  <p>{{ message }}</p>
+  <div class="success-actions">
+    <a class="button button-primary" href="{{ url_for('home') }}">Back to the studio</a>
+    <a class="button button-secondary" href="/docs">Check API docs</a>
+  </div>
+</section>
+{% endblock %}

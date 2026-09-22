@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Create a comic — ComicCraft{% endblock %}
+{% block content %}
+<section class="hero shell">
+  <div class="hero-copy">
+    <p class="eyebrow"><span></span> AI COMIC STUDIO</p>
+    <h1>Turn one bright idea into a <em>complete comic.</em></h1>
+    <p class="hero-lede">Choose a hero, mood, world, and visual style. ComicCraft plans the panels, writes the script, creates the art, and packages everything as a PDF.</p>
+    <div class="hero-badges" aria-label="Features">
+      <span>Structured story</span><span>Consistent panels</span><span>PDF export</span>
+    </div>
+  </div>
+  <aside class="status-card">
+    <div class="status-dot"></div>
+    <div>
+      <strong>Studio ready</strong>
+      <p>Story: {{ settings.resolved_ai_mode|capitalize }} · Images: {{ settings.image_provider|capitalize }}</p>
+    </div>
+  </aside>
+</section>
+
+<section class="creator-section shell">
+  <form id="comic-form" class="creator-card" action="{{ url_for('generate_web') }}" method="post">
+    <div class="form-heading">
+      <div>
+        <p class="step-label">01 / STORY BRIEF</p>
+        <h2>Build your adventure</h2>
+      </div>
+      <span class="time-note">Usually 10 sec–several min</span>
+    </div>
+
+    <label class="field field-wide">
+      <span>What should happen?</span>
+      <textarea name="story_prompt" minlength="10" maxlength="1500" rows="5" required placeholder="A brave fox follows a trail of glowing leaves and discovers a clockwork city beneath the forest…">A brave inventor discovers a tiny dragon hiding inside an old library and must help it find its way home.</textarea>
+      <small><span data-character-count>0</span>/1500 characters</small>
+    </label>
+
+    <div class="form-grid">
+      <label class="field">
+        <span>Main character</span>
+        <input type="text" name="character_name" minlength="1" maxlength="80" value="{{ defaults.character_name }}" required>
+      </label>
+      <label class="field">
+        <span>Setting</span>
+        <input type="text" name="setting" minlength="1" maxlength="100" value="{{ defaults.setting }}" required>
+      </label>
+      <label class="field">
+        <span>Story tone</span>
+        <select name="tone" required>
+          {% for tone in ["Adventurous", "Funny", "Dramatic", "Light-hearted", "Mysterious", "Poetic"] %}
+          <option value="{{ tone }}" {% if tone == defaults.tone %}selected{% endif %}>{{ tone }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span>Art style</span>
+        <select name="art_style" required>
+          {% for style in ["Modern comic book", "Anime", "Watercolor storybook", "Pixel art", "Noir ink", "Cinematic realistic"] %}
+          <option value="{{ style }}" {% if style == defaults.art_style %}selected{% endif %}>{{ style }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span>Number of panels</span>
+        <select name="panel_count" required>
+          {% for count in range(3, 9) %}
+          <option value="{{ count }}" {% if count == defaults.panel_count %}selected{% endif %}>{{ count }} panels</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="field mode-field">
+        <span>Generation mode</span>
+        <div class="mode-value"><b>{{ settings.resolved_ai_mode|upper }}</b> + {{ settings.image_provider|upper }}</div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p>Your idea is processed only for generation. API usage may incur provider costs.</p>
+      <button class="button button-primary" type="submit">
+        <span>Create my comic</span><b aria-hidden="true">→</b>
+      </button>
+    </div>
+  </form>
+
+  <aside class="process-card">
+    <p class="step-label">HOW IT WORKS</p>
+    <ol class="process-list">
+      <li><b>Plan</b><span>AI turns the idea into a clear sequence of panels.</span></li>
+      <li><b>Write</b><span>Narration, captions, and dialogue form one coherent story.</span></li>
+      <li><b>Illustrate</b><span>The selected image provider creates each visual.</span></li>
+      <li><b>Publish</b><span>Text and images are assembled into a downloadable PDF.</span></li>
+    </ol>
+    <div class="tip-box"><b>Tip</b><p>Mention the hero’s goal, a challenge, and the type of ending you want.</p></div>
+  </aside>
+</section>
+
+<div id="loading-overlay" class="loading-overlay" hidden role="status" aria-live="polite">
+  <div class="loading-card">
+    <div class="burst-spinner" aria-hidden="true"></div>
+    <p class="step-label">COMIC IN PROGRESS</p>
+    <h2>Inking your panels…</h2>
+    <p data-loading-message>Planning a clear beginning, middle, and ending.</p>
+    <small>Keep this tab open. Live image providers may need a few minutes.</small>
+  </div>
+</div>
+{% endblock %}

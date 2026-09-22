@@ -1,0 +1,7 @@
+# Install requirements.txt first. For NVIDIA CUDA, install the matching PyTorch
+# wheel from https://pytorch.org/get-started/locally/ before this file.
+torch>=2.5.0
+diffusers>=0.32.0
+transformers>=4.48.0
+accelerate>=1.2.0
+safetensors>=0.5.0

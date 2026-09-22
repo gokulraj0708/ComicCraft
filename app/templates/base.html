@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ComicCraft turns story ideas into panel-by-panel comics.">
+  <meta name="theme-color" content="#10182e">
+  <title>{% block title %}ComicCraft{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', path='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="page-noise" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('home') }}" aria-label="ComicCraft home">
+      <span class="brand-mark" aria-hidden="true">C!</span>
+      <span>Comic<span>Craft</span></span>
+    </a>
+    <nav class="top-nav" aria-label="Main navigation">
+      <a href="{{ url_for('home') }}">Create</a>
+      <a href="/docs">API Docs</a>
+      <a href="/health">Health</a>
+    </nav>
+  </header>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <p><strong>ComicCraft</strong> — human ideas, AI assistance, your final creative judgment.</p>
+    <p class="muted">Always review generated text and artwork before publishing.</p>
+  </footer>
+  <script src="{{ url_for('static', path='js/app.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Lightweight Android/Termux installation.
+# Demo stories + placeholder panel art work with these packages.
+fastapi>=0.115.0,<1.0.0
+uvicorn>=0.34.0,<1.0.0
+jinja2>=3.1.4,<4.0.0
+python-multipart>=0.0.20,<1.0.0
+pydantic>=2.10.0,<3.0.0
+pydantic-settings>=2.7.0,<3.0.0
+Pillow>=11.0.0,<13.0.0
+fpdf2>=2.8.2,<3.0.0
+httpx>=0.28.0,<1.0.0
+
+# To enable live providers later, run one or both:
+# pip install "google-genai>=1,<3"
+# pip install "huggingface-hub>=0.28,<2"
