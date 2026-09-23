@@ -1,24 +1,128 @@
 # ComicCraft — AI Comic Story Creator
 
-A complete FastAPI application that turns a story idea into a structured comic, generates panel artwork through a selectable provider, previews the result in a responsive web UI, and exports a downloadable PDF.
+## Project Overview
+
+ComicCraft is an AI-assisted comic story creation application built with FastAPI. It turns a story idea into a structured comic using the configured two-stage Google Gemini workflow, generates panel artwork through a selectable provider, previews the result in a responsive web UI, and exports a downloadable PDF. An offline, deterministic demo writer and local placeholder artwork also let you try the complete workflow without AI credentials.
 
 The project is based on the supplied ComicCraft documentation but replaces incomplete and fragile snippets with validated, runnable modules.
 
+**Explore:** [Setup](#fastest-setup-no-api-keys) · [Architecture](#system-architecture) · [Screenshots](#application-screenshots) · [API](#api) · [Testing](#testing) · [Project documentation](#project-documentation)
+
+## Problem Statement
+
+Creating a comic manually involves story writing, panel planning, artwork creation, arranging panels, and preparing the final comic output. ComicCraft aims to simplify that workflow by accepting a single creative brief, using AI-assisted story and image generation when configured, and assembling the panel content into a browser preview and PDF. Generated text and artwork still need the creator's review before sharing.
+
+## Objectives
+
+- Convert a story idea and creative preferences into a structured, sequential comic.
+- Produce panel-wise scene descriptions, captions, narration, dialogue, and image prompts.
+- Generate one image per panel through the configured placeholder, Hugging Face, or local Diffusers provider.
+- Provide a browser-based creation form and preview, alongside a JSON API.
+- Save comic manifests and artwork so previews and PDF downloads can be reopened by ID.
+- Export the comic as a Unicode-capable PDF and report when configured story or image fallbacks are used.
+
 ## Features
 
-- Browser form with story, character, setting, tone, style, and 3–8 panels
+### Creation and story generation
+
+- Browser form with story, character, setting, tone, style, and 3–8 panels (5 by default)
 - Two-stage Gemini workflow: structured outline, then structured comic script
 - Strict Pydantic validation instead of splitting free-form AI text
+- Offline demo stories for credential-free setup and testing
+
+### Artwork and output
+
 - Three image modes:
   - `placeholder`: fast local demo images; no key or GPU required
   - `huggingface`: hosted text-to-image inference
   - `diffusers`: local Stable Diffusion, loaded only when selected
-- Automatic, visible provider fallbacks
-- Responsive Jinja2 frontend
-- JSON API and interactive OpenAPI documentation
+- Configurable story and per-panel image fallbacks, with warnings in the preview and API metadata
+- Responsive Jinja2 frontend with panel text, provider labels, and expandable image prompts
 - UUID-isolated output folders and reusable JSON manifests
 - Unicode-capable PDF export using bundled DejaVu fonts
+
+### Developer tooling
+
+- JSON API and interactive OpenAPI documentation
 - Automated tests, Docker files, cleanup utility, setup scripts, and VS Code configuration
+
+## Technology Stack
+
+| Layer | Technology | Repository reference |
+|---|---|---|
+| Language | Python 3.11+ | [pyproject.toml](pyproject.toml) |
+| Backend and forms | FastAPI, Uvicorn, python-multipart | [requirements.txt](requirements.txt), [routes.py](app/routes.py) |
+| Validation and configuration | Pydantic v2, pydantic-settings | [schemas.py](app/schemas.py), [config.py](app/config.py) |
+| Templates | Jinja2 | [templates/](app/templates/) |
+| Frontend | HTML, CSS, vanilla JavaScript | [static/](app/static/), [templates/](app/templates/) |
+| AI story generation | Google Gemini via google-genai; offline demo writer | [llm.py](app/services/llm.py) |
+| Image generation | Pillow placeholders; huggingface-hub hosted inference; optional Diffusers/PyTorch | [images.py](app/services/images.py), [requirements.txt](requirements.txt) |
+| Optional local diffusion dependencies | torch, diffusers, transformers, accelerate, safetensors | [requirements-local-diffusion.txt](requirements-local-diffusion.txt) |
+| PDF export | fpdf2 with bundled DejaVu Sans fonts | [pdf_service.py](app/services/pdf_service.py), [fonts/](app/static/fonts/) |
+| Storage | Local filesystem: JSON manifests, PNG panels, PDF files | [repository.py](app/services/repository.py) |
+| API documentation | FastAPI-generated OpenAPI and Swagger UI | [main.py](app/main.py) |
+| Testing | pytest, pytest-cov, FastAPI TestClient / HTTPX | [requirements-dev.txt](requirements-dev.txt), [tests/](tests/) |
+| Linting | Ruff | [pyproject.toml](pyproject.toml) |
+| Container packaging | Docker, Docker Compose | [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml) |
+
+## System Architecture
+
+```mermaid
+flowchart TD
+    User[User] --> Web[Browser: Jinja2 pages, CSS and JavaScript]
+    Web --> API[FastAPI routes and Pydantic input validation]
+    Client[JSON API client] --> API
+    API -->|run_in_threadpool| Service[ComicService]
+
+    Service --> Story[ResilientStoryService]
+    Story --> Gemini[Gemini: outline then script]
+    Story --> Demo[Deterministic demo writer]
+    Gemini -.->|on error, if AI fallback is enabled| Demo
+
+    Service --> Images[ResilientImageService: one PNG per panel]
+    Images --> Placeholder[Placeholder: Pillow]
+    Images --> HF[Hugging Face: hosted inference]
+    Images --> Local[Diffusers: local Stable Diffusion]
+    HF -.->|panel-generation failure, if fallback enabled| Placeholder
+    Local -.->|panel-generation failure, if fallback enabled| Placeholder
+
+    Service --> PDF[PDFService: fpdf2 and DejaVu fonts]
+    Service --> Repo[ComicRepository: UUID workspaces and JSON manifests]
+    Images -->|panel PNGs| Storage[(Local storage)]
+    PDF -->|comic.pdf| Storage
+    Repo <-->|comic.json| Storage
+    Service --> Result[ComicResult with URLs and provider metadata]
+    Result --> Preview[Browser preview or JSON response]
+    Storage -->|saved PDF via download route| Download[PDF download]
+```
+
+The web form and JSON endpoints share the same [ComicService](app/services/comic_service.py). It creates a workspace, obtains a validated script, generates images sequentially, builds the PDF, and saves the result manifest **before** returning the preview or JSON response. Blocking generation runs in FastAPI's thread pool, but the request waits for completion; there is no background job queue. Saved previews and downloads are loaded through `ComicRepository`, and `/media` serves generated panel images.
+
+## How It Works
+
+1. **Enter a brief:** provide a story idea (10–1500 characters), character, setting, tone, art style, and 3–8 panels in the browser form or JSON request.
+2. **Generate the story:** the configured story service uses Gemini's outline/script stages or the deterministic demo writer. Panel count and numbering are validated.
+3. **Process each panel:** the script supplies scene text, captions, narration, dialogue, and an image prompt. The image service derives a seed from the comic ID, panel number, and image prompt, then saves a PNG using the selected provider.
+4. **Assemble and save:** `PDFService` builds the PDF from the script and images; `ComicRepository` saves a JSON manifest beside the artwork and PDF.
+5. **Preview:** inspect panel artwork and text, expand image prompts, and review actual provider names and any fallback warnings. Reopen a saved comic at `/comics/{comic_id}`.
+6. **Download:** select **Download PDF** to retrieve the already-built file. With JavaScript enabled, the preview then navigates to the export-confirmation page.
+
+## AI Workflow
+
+The live workflow in [app/services/llm.py](app/services/llm.py) has two stages:
+
+1. **Outline:** the configured `GEMINI_OUTLINE_MODEL` receives the validated brief and requests JSON containing a title, a stable character description (`character_bible`), and panel entries with scene descriptions and image prompts. `ComicOutline` validates the response, exact panel count, and sequential numbering.
+2. **Script:** `GEMINI_STORY_MODEL` receives the brief and validated outline, then expands each panel into caption, narration, dialogue, and an image prompt. `ComicScript` validates the response and checks its panel count and sequence against the request.
+
+Both calls use `response_mime_type="application/json"`; responses are normalized and parsed with Pydantic rather than split as free-form prose. Prompts ask for repeated character traits and no written dialogue inside the artwork; these are generation instructions, not guarantees of visual consistency or content safety. The script then feeds the separate image, preview, and PDF pipeline.
+
+### Mode selection and fallback behavior
+
+- `AI_MODE=auto` chooses Gemini when `GEMINI_API_KEY` is non-empty; otherwise it chooses demo mode. `AI_MODE=demo` explicitly avoids Gemini calls, while `AI_MODE=gemini` selects the live workflow.
+- The demo writer builds a `ComicScript` directly from fixed story beats and the supplied preferences. It does **not** call an AI model or execute the two Gemini stages.
+- Gemini retries recognized transient failures (429, 500, 502, 503, 504 and matching transient error messages) with bounded exponential backoff and jitter. It tries configured fallback models after failed calls and moves directly to the next model for 400/404-style errors.
+- If Gemini initialization, generation, or output validation fails, `ALLOW_AI_FALLBACK=true` permits a demo story with a warning and `used_fallback=true`. With it disabled, the error is propagated. Invalid returned JSON is validated after the API call; it is not itself retried through the model list.
+- `provider_info` records the actual outline/story models and image providers. A successful switch between Gemini models is reflected in the model names but does not itself set `used_fallback`; that flag covers the demo-story or placeholder-image fallback.
 
 ## Project structure
 
@@ -41,13 +145,21 @@ ComicCraft/
 │   └── static/                 # CSS, JS, icon, and PDF fonts
 ├── tests/
 ├── scripts/cleanup.py
-├── storage/
+├── ComicCraft_Phase_Wise_Submission/  # Eight documentation phases (linked below)
+├── docs/screenshots/           # Captures from the running application
+├── storage/                    # Created at runtime; generated output is ignored
+├── .vscode/                    # Editor, launch, task, and test settings
 ├── .env.example
+├── pyproject.toml
 ├── requirements*.txt
 ├── Dockerfile
 ├── docker-compose.yml
 ├── setup.sh / setup.bat
-└── run.sh / run.bat
+├── run.sh / run.bat
+├── android-setup.sh / android-run.sh
+├── ANDROID-SPCK.md
+├── QUICKSTART.md
+└── PROJECT_ANALYSIS.md
 ```
 
 ## Fastest setup: no API keys
@@ -73,7 +185,9 @@ chmod +x setup.sh run.sh
 ./run.sh
 ```
 
-Open <http://127.0.0.1:8000>. The default `AI_MODE=auto` selects the offline demo writer when no Gemini key exists, and `IMAGE_PROVIDER=placeholder` creates local demo panel art.
+Open <http://127.0.0.1:8000>. `IMAGE_PROVIDER=placeholder` creates local demo panel art, and `AI_MODE=auto` selects the offline demo writer when no Gemini key is set.
+
+> **Note:** the setup scripts copy `.env.example`, which ships with the literal value `GEMINI_API_KEY=your_gemini_api_key_here`. Because that value is not empty, `AI_MODE=auto` resolves to Gemini and calls fail against the placeholder key. For a genuinely credential-free run, either clear the key or set `AI_MODE=demo` in `.env`. `/health` and the home page status card both report the resolved mode.
 
 ### Manual installation
 
@@ -185,6 +299,36 @@ LOCAL_SD_STEPS=25
 
 The first generation downloads model weights and can require several GB. A supported GPU is strongly recommended.
 
+## Application Screenshots
+
+Captured from the running application in its default `AI_MODE=demo` + `IMAGE_PROVIDER=placeholder` configuration, using a three-panel example brief. No API keys, tokens, or `.env` contents appear in these captures.
+
+### Comic Creation Interface
+
+The creation form with the story brief, character, setting, tone, art style, and panel count. The status card and generation-mode field report the resolved providers.
+
+![ComicCraft creation form showing the story brief fields and the DEMO + PLACEHOLDER generation mode](docs/screenshots/comic-creation-interface.png)
+
+### Generated Comic
+
+The preview page after submitting the form, showing the generated title, the creative brief summary, the **Download PDF** action, and the first panel.
+
+![ComicCraft preview page showing the generated comic title and first panel](docs/screenshots/generated-comic.png)
+
+### Generated Comic Panels
+
+Each panel pairs the generated artwork with its scene description, caption, narration, and dialogue. The `PLACEHOLDER` chip marks the image provider that actually produced each panel.
+
+![Three generated comic panels with artwork, captions, narration, and dialogue](docs/screenshots/generated-comic-panels.png)
+
+### PDF Export
+
+The export confirmation page reached after selecting **Download PDF**, which offers the file again and links back to the preview.
+
+![ComicCraft export confirmation page with download and return links](docs/screenshots/pdf-export.png)
+
+Panel artwork in these captures comes from the deterministic placeholder provider, not an image model. Screenshots of live Gemini stories or hosted Hugging Face artwork are not included, because no provider credentials were available.
+
 ## API
 
 Interactive documentation: <http://127.0.0.1:8000/docs>
@@ -230,6 +374,8 @@ python -m pytest
 python -m pytest --cov=app
 ```
 
+The suite in [tests/](tests/) covers the health and home routes, the browser form flow, the JSON API lifecycle including PDF download, input validation and unknown-ID handling, the `/test-image` route, the demo story structure, and the Gemini retry/model-switch policy using a fake client.
+
 Manual checks:
 
 1. Open `/health`; status should be `ok`.
@@ -238,6 +384,48 @@ Manual checks:
 4. Download the PDF and inspect all pages.
 5. Open `/docs` and call `POST /api/v1/comics`.
 6. With live providers enabled, inspect `provider_info` for fallbacks/warnings.
+
+## PDF Export
+
+[PDFService](app/services/pdf_service.py) builds the PDF during generation, before the preview appears, so **Download PDF** serves an already-saved file rather than starting a new export. Each document is A4 and contains:
+
+- A cover page with the comic title, the starring character, tone, art style, the original story idea, and a reminder to review generated content.
+- One page per panel with the panel title, the artwork scaled to fit a 180 × 145 mm box while preserving its aspect ratio, then the caption, narration, and any dialogue lines.
+- A `ComicCraft • Page N` footer, with text set in the bundled DejaVu fonts so Unicode characters render correctly.
+
+Export requires one image per panel; the download filename is derived from the comic title. The same PDF stays available at `/download/{comic_id}` as long as the stored workspace exists.
+
+## Project Documentation
+
+The repository includes phase-wise project documentation under [`ComicCraft_Phase_Wise_Submission/`](ComicCraft_Phase_Wise_Submission/), organized into eight folders:
+
+| # | Phase folder | Included files |
+|---|---|---|
+| 1 | [Brainstorming & Ideation](ComicCraft_Phase_Wise_Submission/01_Brainstorming_Ideation/) | Phase document |
+| 2 | [Requirement Analysis](ComicCraft_Phase_Wise_Submission/02_Requirement_Analysis/) | Phase document |
+| 3 | [Project Design](ComicCraft_Phase_Wise_Submission/03_Project_Design/) | Phase document and six diagrams (architecture, workflow, data flow, use case, AI generation flow, fallback flow) |
+| 4 | [Project Planning](ComicCraft_Phase_Wise_Submission/04_Project_Planning/) | Phase document and a Gantt chart spreadsheet |
+| 5 | [Project Development](ComicCraft_Phase_Wise_Submission/05_Project_Development/) | Phase document |
+| 6 | [Project Testing](ComicCraft_Phase_Wise_Submission/06_Project_Testing/) | Phase document, test-case spreadsheet, and requirement traceability matrix |
+| 7 | [Project Documentation](ComicCraft_Phase_Wise_Submission/07_Project_Documentation/) | Final project report |
+| 8 | [Project Demonstration](ComicCraft_Phase_Wise_Submission/08_Project_Demonstration/) | Demonstration guide, final presentation, and viva questions |
+
+For engineering-focused notes, see [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md), [QUICKSTART.md](QUICKSTART.md), and [ANDROID-SPCK.md](ANDROID-SPCK.md).
+
+## Project Demonstration
+
+Demo video link will be added here.
+
+A demonstration can follow the workflow this repository actually supports:
+
+1. Introduce the project and the problem it addresses.
+2. Show the resolved configuration at `/health` and on the home page status card.
+3. Fill in the creation form with a story idea, character, setting, tone, art style, and panel count.
+4. Explain the story generation step — the two-stage Gemini workflow when configured, or the offline demo writer.
+5. Show the generated panels with their artwork, text, and provider labels.
+6. Walk through the preview, including image prompts and any fallback warnings.
+7. Download the PDF and show the cover and panel pages.
+8. Optionally call `POST /api/v1/comics` to show the same pipeline through the JSON API.
 
 ## Docker
 
@@ -281,6 +469,30 @@ python scripts/cleanup.py --days 7
 Before exposing this app publicly, add authentication, per-user quotas, rate limiting, a background task queue, a database, object storage, HTTPS, provider cost budgets, audience-appropriate moderation, monitoring, and scheduled cleanup. The current synchronous generation route is intentionally simple and is best for learning or controlled use.
 
 See `PROJECT_ANALYSIS.md` for the documentation review and design decisions.
+
+## Limitations
+
+These reflect the current implementation:
+
+- Generation is synchronous within the request. There is no background queue or progress API, so a browser or client waits for the whole pipeline; live image providers can take minutes.
+- Panel count is limited to 3–8 per comic, and story prompts to 1500 characters.
+- The application has no authentication, quotas, or rate limiting, and no content moderation beyond prompt wording and input validation.
+- Storage is the local filesystem only. There is no database or object storage, and old comics accumulate until `scripts/cleanup.py` removes them.
+- Application state lives in a single process, so it is not designed for multi-worker deployment.
+- Placeholder artwork is deterministic local drawing, not model-generated imagery. Live story and image generation require your own Gemini key or Hugging Face token, and local Diffusers needs a large model download and ideally a GPU.
+- Image fallback covers per-panel generation failures. A missing or invalid Hugging Face token raises a configuration error at provider construction instead of falling back to placeholder art.
+- The interface is English-only, with no internationalization support.
+
+## Future Enhancements
+
+These are **possible future work**, not existing features:
+
+- Additional image-generation providers and model options.
+- More customization, such as editing the outline before artwork is generated, or regenerating a single panel.
+- Additional comic layouts and page templates, including multi-panel pages.
+- Improved panel editing, such as adjusting captions or dialogue after generation.
+- Background job processing with progress reporting for long generations.
+- The hardening steps listed in the production checklist above.
 
 ## License
 
