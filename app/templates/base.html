@@ -4,13 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="ComicCraft turns story ideas into panel-by-panel comics.">
-  <meta name="theme-color" content="#10182e">
+  <meta name="theme-color" content="#181c2e">
   <title>{% block title %}ComicCraft{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', path='favicon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}">
   {% block head %}{% endblock %}
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="page-noise" aria-hidden="true"></div>
   <header class="site-header">
     <a class="brand" href="{{ url_for('home') }}" aria-label="ComicCraft home">
@@ -18,13 +19,13 @@
       <span>Comic<span>Craft</span></span>
     </a>
     <nav class="top-nav" aria-label="Main navigation">
-      <a href="{{ url_for('home') }}">Create</a>
+      <a href="{{ url_for('home') }}" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Create</a>
       <a href="/docs">API Docs</a>
       <a href="/health">Health</a>
     </nav>
   </header>
 
-  <main>{% block content %}{% endblock %}</main>
+  <main id="main-content">{% block content %}{% endblock %}</main>
 
   <footer class="site-footer">
     <p><strong>ComicCraft</strong> — human ideas, AI assistance, your final creative judgment.</p>

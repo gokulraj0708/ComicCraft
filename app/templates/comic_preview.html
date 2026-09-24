@@ -3,22 +3,32 @@
 {% block content %}
 <section class="preview-hero shell">
   <div>
-    <p class="eyebrow"><span></span> COMIC COMPLETE</p>
+    <p class="eyebrow">COMIC COMPLETE</p>
     <h1>{{ comic.title }}</h1>
-    <p>Starring <strong>{{ comic.prompt.character_name }}</strong> in {{ comic.prompt.setting }} · {{ comic.prompt.tone }} · {{ comic.prompt.art_style }}</p>
+    <div class="preview-meta" aria-label="Creative brief">
+      <span class="chip"><span class="chip-label">Starring</span> {{ comic.prompt.character_name }}</span>
+      <span class="chip"><span class="chip-label">Setting</span> {{ comic.prompt.setting }}</span>
+      <span class="chip"><span class="chip-label">Tone</span> {{ comic.prompt.tone }}</span>
+      <span class="chip"><span class="chip-label">Art</span> {{ comic.prompt.art_style }}</span>
+      <span class="chip"><span class="chip-label">Panels</span> {{ comic.panels|length }}</span>
+    </div>
   </div>
   <div class="preview-actions">
     <a class="button button-secondary" href="{{ url_for('home') }}">Create another</a>
     <a id="download-comic" class="button button-primary" href="{{ comic.pdf_url }}" data-success-url="{{ url_for('export_success') }}?comic_id={{ comic.comic_id }}">
-      Download PDF <b aria-hidden="true">↓</b>
+      <span class="button-icon" aria-hidden="true">↓</span> Download PDF
     </a>
   </div>
 </section>
 
 {% if comic.provider_info.warnings %}
 <section class="shell notice" role="status">
-  <strong>Generated with fallback assistance</strong>
-  <ul>{% for warning in comic.provider_info.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+  <span class="notice-icon" aria-hidden="true">⚠</span>
+  <div>
+    <strong>Generated with backup assistance</strong>
+    <p>Nothing to fix — the comic is complete. One or more steps used a fallback provider instead of the configured live service:</p>
+    <ul>{% for warning in comic.provider_info.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+  </div>
 </section>
 {% endif %}
 
@@ -27,17 +37,17 @@
   <article class="comic-panel">
     <div class="panel-art">
       <img src="{{ panel.image_url }}" alt="Illustration for panel {{ panel.panel_number }}: {{ panel.title }}" loading="{% if loop.index > 2 %}lazy{% else %}eager{% endif %}">
-      <span class="panel-number">{{ "%02d"|format(panel.panel_number) }}</span>
-      <span class="provider-chip">{{ panel.image_provider }}</span>
+      <span class="panel-number" aria-hidden="true">{{ "%02d"|format(panel.panel_number) }}</span>
+      <span class="provider-chip" title="Artwork provider for this panel">{{ panel.image_provider }}</span>
     </div>
     <div class="panel-copy">
-      <p class="panel-kicker">PANEL {{ panel.panel_number }}</p>
+      <p class="panel-kicker">Panel {{ panel.panel_number }}</p>
       <h2>{{ panel.title }}</h2>
       <p class="scene">{{ panel.scene_description }}</p>
       <blockquote>{{ panel.caption }}</blockquote>
       <p class="narration">{{ panel.narration }}</p>
       {% if panel.dialogue %}
-      <div class="dialogue-list">
+      <div class="dialogue-list" aria-label="Dialogue">
         {% for line in panel.dialogue %}
         <p><strong>{{ line.speaker }}</strong><span>“{{ line.text }}”</span></p>
         {% endfor %}
@@ -52,7 +62,7 @@
   {% endfor %}
 </section>
 
-<section class="metadata-card shell">
+<section class="metadata-card shell" aria-label="Generation details">
   <div><span>Comic ID</span><code>{{ comic.comic_id }}</code></div>
   <div><span>Story provider</span><b>{{ comic.provider_info.text_provider }}</b></div>
   <div><span>Outline model</span><b>{{ comic.provider_info.outline_model }}</b></div>

@@ -2,12 +2,12 @@
 {% block title %}Export ready — ComicCraft{% endblock %}
 {% block content %}
 <section class="success-page shell">
-  <div class="success-burst" aria-hidden="true">✓</div>
-  <p class="eyebrow"><span></span> EXPORT COMPLETE</p>
+  <div class="status-glyph is-success" aria-hidden="true">✓</div>
+  <p class="eyebrow">EXPORT COMPLETE</p>
   <h1>Your comic is ready to travel.</h1>
-  <p><strong>{{ comic.title }}</strong> has been prepared as a PDF. If the download did not start, use the button below.</p>
+  <p class="lede"><strong>{{ comic.title }}</strong> has been prepared as a PDF. If the download did not start automatically, use the button below.</p>
   <div class="success-actions">
-    <a class="button button-primary" href="{{ comic.pdf_url }}">Download again ↓</a>
+    <a class="button button-primary" href="{{ comic.pdf_url }}"><span class="button-icon" aria-hidden="true">↓</span> Download again</a>
     <a class="button button-secondary" href="{{ url_for('home') }}">Create another comic</a>
   </div>
   <a class="text-link" href="{{ comic.preview_url }}">← Return to comic preview</a>
