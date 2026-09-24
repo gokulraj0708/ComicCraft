@@ -2,10 +2,14 @@
 {% block title %}Something went wrong — ComicCraft{% endblock %}
 {% block content %}
 <section class="error-page shell">
-  <p class="error-code">{{ status_code }}</p>
-  <p class="eyebrow"><span></span> GENERATION INTERRUPTED</p>
+  <p class="error-code" aria-hidden="true">{{ status_code }}</p>
+  <p class="eyebrow">GENERATION INTERRUPTED</p>
   <h1>That panel needs a redraw.</h1>
-  <p>{{ message }}</p>
+  <p class="lede">Your comic could not be completed this time. Nothing was saved and nothing was lost — adjust the details below and try again.</p>
+  <div class="error-detail" role="alert">
+    <b>What went wrong</b>
+    {{ message }}
+  </div>
   <div class="success-actions">
     <a class="button button-primary" href="{{ url_for('home') }}">Back to the studio</a>
     <a class="button button-secondary" href="/docs">Check API docs</a>

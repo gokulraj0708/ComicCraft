@@ -301,31 +301,49 @@ The first generation downloads model weights and can require several GB. A suppo
 
 ## Application Screenshots
 
-Captured from the running application in its default `AI_MODE=demo` + `IMAGE_PROVIDER=placeholder` configuration, using a three-panel example brief. No API keys, tokens, or `.env` contents appear in these captures.
+Captured from the running application in its default `AI_MODE=demo` + `IMAGE_PROVIDER=placeholder` configuration, using a five-panel example brief. No API keys, tokens, or `.env` contents appear in these captures.
 
 ### Comic Creation Interface
 
-The creation form with the story brief, character, setting, tone, art style, and panel count. The status card and generation-mode field report the resolved providers.
+The home page groups the brief into numbered sections — **Your story** (with a live character counter), **Character &amp; world**, and **Style &amp; structure** — next to a "How it works" rail. The status card and the generation-mode box report the resolved providers.
 
-![ComicCraft creation form showing the story brief fields and the DEMO + PLACEHOLDER generation mode](docs/screenshots/comic-creation-interface.png)
+![ComicCraft home page with the hero, the Studio ready status card, and the grouped comic creation form](docs/screenshots/comiccraft-home.png)
+
+The same form filled in with an example brief before submitting:
+
+![ComicCraft creation form filled with a story idea, character, setting, tone, art style, and panel count](docs/screenshots/comiccraft-input-form.png)
+
+### Generation Progress
+
+After selecting **Generate comic**, a progress overlay confirms the request is running: it shows the current pipeline phase (Plan, Write, Illustrate, Package), rotating status messages, and a reminder to keep the tab open. Demo providers finish in a few seconds; live AI providers keep this overlay visible for longer.
+
+![ComicCraft loading overlay with spinner, progress steps, and status message while a comic is generated](docs/screenshots/comiccraft-generating.png)
 
 ### Generated Comic
 
-The preview page after submitting the form, showing the generated title, the creative brief summary, the **Download PDF** action, and the first panel.
+The preview page after generation: the comic title, the creative brief as chips (character, setting, tone, art style, panel count), the **Create another** and **Download PDF** actions, and the first panel.
 
-![ComicCraft preview page showing the generated comic title and first panel](docs/screenshots/generated-comic.png)
+![ComicCraft preview page showing the generated comic title, brief summary chips, actions, and first panel](docs/screenshots/comiccraft-generated-comic.png)
 
 ### Generated Comic Panels
 
-Each panel pairs the generated artwork with its scene description, caption, narration, and dialogue. The `PLACEHOLDER` chip marks the image provider that actually produced each panel.
+Each panel card pairs the generated artwork with its scene description, caption, narration, and dialogue, alternating sides down the page. Panel numbers and the `PLACEHOLDER` chip mark the image provider that actually produced each panel, and the image prompt can be expanded per panel.
 
-![Three generated comic panels with artwork, captions, narration, and dialogue](docs/screenshots/generated-comic-panels.png)
+![Two generated comic panels with artwork, captions, narration, dialogue, and provider chips](docs/screenshots/comiccraft-comic-panels.png)
+
+The same preview at phone width: panels collapse to a single column and the actions go full width.
+
+![ComicCraft preview on a narrow mobile viewport showing the responsive single-column layout](docs/screenshots/comiccraft-mobile.png)
 
 ### PDF Export
 
 The export confirmation page reached after selecting **Download PDF**, which offers the file again and links back to the preview.
 
-![ComicCraft export confirmation page with download and return links](docs/screenshots/pdf-export.png)
+![ComicCraft export confirmation page with download, create-another, and return-to-preview actions](docs/screenshots/comiccraft-pdf-export.png)
+
+Pages from the actual downloaded PDF for the comic above — the cover and one panel page:
+
+![Cover page and a panel page of the comic PDF produced by ComicCraft](docs/screenshots/comiccraft-pdf-output.png)
 
 Panel artwork in these captures comes from the deterministic placeholder provider, not an image model. Screenshots of live Gemini stories or hosted Hugging Face artwork are not included, because no provider credentials were available.
 
