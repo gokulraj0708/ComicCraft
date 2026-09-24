@@ -428,6 +428,8 @@ The repository includes phase-wise project documentation under [`ComicCraft_Phas
 | 7 | [Project Documentation](ComicCraft_Phase_Wise_Submission/07_Project_Documentation/) | Final project report |
 | 8 | [Project Demonstration](ComicCraft_Phase_Wise_Submission/08_Project_Demonstration/) | Demonstration guide, final presentation, and viva questions |
 
+An additional standalone project report (supplementary to the phase-wise documentation above) is available at [docs/additional-documentation/ComicCraft_Project_Documentation.md](docs/additional-documentation/ComicCraft_Project_Documentation.md).
+
 For engineering-focused notes, see [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md), [QUICKSTART.md](QUICKSTART.md), and [ANDROID-SPCK.md](ANDROID-SPCK.md).
 
 ## Project Demonstration
