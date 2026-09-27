@@ -12,9 +12,9 @@ __pycache__/
 htmlcov/
 
 # Generated output
-storage/comics/*
-storage/test-images/*
-!storage/.gitkeep
+Coding/storage/comics/*
+Coding/storage/test-images/*
+!Coding/storage/.gitkeep
 
 # Editors / OS
 .idea/

@@ -15,7 +15,7 @@ Use **demo stories + placeholder images first**. Do not install local Stable Dif
 Internal storage/Documents/ComicCraft
 ```
 
-3. In Spck, choose **Open Folder**, select `Documents/ComicCraft`, and grant access.
+3. In Spck, choose **Open Folder**, select `Documents/ComicCraft/Coding`, and grant access.
 
 ## 2. Prepare Termux
 
@@ -33,7 +33,7 @@ Accept Android's storage permission when requested.
 ## 3. Install ComicCraft
 
 ```bash
-cd ~/storage/shared/Documents/ComicCraft
+cd ~/storage/shared/Documents/ComicCraft/Coding
 bash android-setup.sh
 ```
 
@@ -42,7 +42,7 @@ The virtual environment is intentionally created under Termux's home directory, 
 ## 4. Run
 
 ```bash
-cd ~/storage/shared/Documents/ComicCraft
+cd ~/storage/shared/Documents/ComicCraft/Coding
 bash android-run.sh
 ```
 
@@ -61,7 +61,7 @@ Stop the server in Termux with **Ctrl+C**.
 Restart later:
 
 ```bash
-cd ~/storage/shared/Documents/ComicCraft
+cd ~/storage/shared/Documents/ComicCraft/Coding
 bash android-run.sh
 ```
 
@@ -76,7 +76,7 @@ source ~/.venvs/comiccraft/bin/activate
 pip install "google-genai>=1,<3"
 ```
 
-In Spck, open `.env` and set:
+In Spck, open `Coding/.env` and set:
 
 ```dotenv
 AI_MODE=gemini
@@ -103,7 +103,7 @@ source ~/.venvs/comiccraft/bin/activate
 pip install "huggingface-hub>=0.28,<2"
 ```
 
-Then update `.env`:
+Then update `Coding/.env`:
 
 ```dotenv
 IMAGE_PROVIDER=huggingface
@@ -118,7 +118,7 @@ Provider access may require credits. If it fails, ComicCraft displays labeled pl
 
 ```bash
 source ~/.venvs/comiccraft/bin/activate
-cd ~/storage/shared/Documents/ComicCraft
+cd ~/storage/shared/Documents/ComicCraft/Coding
 pip install pytest
 python -m pytest
 ```
@@ -153,11 +153,11 @@ pip install --no-cache-dir pydantic pydantic-core
 Run `termux-setup-storage` again and verify that this command lists the project:
 
 ```bash
-ls ~/storage/shared/Documents/ComicCraft
+ls ~/storage/shared/Documents/ComicCraft/Coding
 ```
 
 If you extracted it into Download instead, use:
 
 ```bash
-cd ~/storage/downloads/ComicCraft
+cd ~/storage/downloads/ComicCraft/Coding
 ```
