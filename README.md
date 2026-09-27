@@ -50,20 +50,20 @@ Creating a comic manually involves story writing, panel planning, artwork creati
 
 | Layer | Technology | Repository reference |
 |---|---|---|
-| Language | Python 3.11+ | [pyproject.toml](pyproject.toml) |
-| Backend and forms | FastAPI, Uvicorn, python-multipart | [requirements.txt](requirements.txt), [routes.py](app/routes.py) |
-| Validation and configuration | Pydantic v2, pydantic-settings | [schemas.py](app/schemas.py), [config.py](app/config.py) |
-| Templates | Jinja2 | [templates/](app/templates/) |
-| Frontend | HTML, CSS, vanilla JavaScript | [static/](app/static/), [templates/](app/templates/) |
-| AI story generation | Google Gemini via google-genai; offline demo writer | [llm.py](app/services/llm.py) |
-| Image generation | Pillow placeholders; huggingface-hub hosted inference; optional Diffusers/PyTorch | [images.py](app/services/images.py), [requirements.txt](requirements.txt) |
-| Optional local diffusion dependencies | torch, diffusers, transformers, accelerate, safetensors | [requirements-local-diffusion.txt](requirements-local-diffusion.txt) |
-| PDF export | fpdf2 with bundled DejaVu Sans fonts | [pdf_service.py](app/services/pdf_service.py), [fonts/](app/static/fonts/) |
-| Storage | Local filesystem: JSON manifests, PNG panels, PDF files | [repository.py](app/services/repository.py) |
-| API documentation | FastAPI-generated OpenAPI and Swagger UI | [main.py](app/main.py) |
-| Testing | pytest, pytest-cov, FastAPI TestClient / HTTPX | [requirements-dev.txt](requirements-dev.txt), [tests/](tests/) |
-| Linting | Ruff | [pyproject.toml](pyproject.toml) |
-| Container packaging | Docker, Docker Compose | [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml) |
+| Language | Python 3.11+ | [pyproject.toml](Coding/pyproject.toml) |
+| Backend and forms | FastAPI, Uvicorn, python-multipart | [requirements.txt](Coding/requirements.txt), [routes.py](Coding/app/routes.py) |
+| Validation and configuration | Pydantic v2, pydantic-settings | [schemas.py](Coding/app/schemas.py), [config.py](Coding/app/config.py) |
+| Templates | Jinja2 | [templates/](Coding/app/templates/) |
+| Frontend | HTML, CSS, vanilla JavaScript | [static/](Coding/app/static/), [templates/](Coding/app/templates/) |
+| AI story generation | Google Gemini via google-genai; offline demo writer | [llm.py](Coding/app/services/llm.py) |
+| Image generation | Pillow placeholders; huggingface-hub hosted inference; optional Diffusers/PyTorch | [images.py](Coding/app/services/images.py), [requirements.txt](Coding/requirements.txt) |
+| Optional local diffusion dependencies | torch, diffusers, transformers, accelerate, safetensors | [requirements-local-diffusion.txt](Coding/requirements-local-diffusion.txt) |
+| PDF export | fpdf2 with bundled DejaVu Sans fonts | [pdf_service.py](Coding/app/services/pdf_service.py), [fonts/](Coding/app/static/fonts/) |
+| Storage | Local filesystem: JSON manifests, PNG panels, PDF files | [repository.py](Coding/app/services/repository.py) |
+| API documentation | FastAPI-generated OpenAPI and Swagger UI | [main.py](Coding/app/main.py) |
+| Testing | pytest, pytest-cov, FastAPI TestClient / HTTPX | [requirements-dev.txt](Coding/requirements-dev.txt), [tests/](Coding/tests/) |
+| Linting | Ruff | [pyproject.toml](Coding/pyproject.toml) |
+| Container packaging | Docker, Docker Compose | [Dockerfile](Coding/Dockerfile), [docker-compose.yml](Coding/docker-compose.yml) |
 
 ## System Architecture
 
@@ -96,7 +96,7 @@ flowchart TD
     Storage -->|saved PDF via download route| Download[PDF download]
 ```
 
-The web form and JSON endpoints share the same [ComicService](app/services/comic_service.py). It creates a workspace, obtains a validated script, generates images sequentially, builds the PDF, and saves the result manifest **before** returning the preview or JSON response. Blocking generation runs in FastAPI's thread pool, but the request waits for completion; there is no background job queue. Saved previews and downloads are loaded through `ComicRepository`, and `/media` serves generated panel images.
+The web form and JSON endpoints share the same [ComicService](Coding/app/services/comic_service.py). It creates a workspace, obtains a validated script, generates images sequentially, builds the PDF, and saves the result manifest **before** returning the preview or JSON response. Blocking generation runs in FastAPI's thread pool, but the request waits for completion; there is no background job queue. Saved previews and downloads are loaded through `ComicRepository`, and `/media` serves generated panel images.
 
 ## How It Works
 
@@ -109,7 +109,7 @@ The web form and JSON endpoints share the same [ComicService](app/services/comic
 
 ## AI Workflow
 
-The live workflow in [app/services/llm.py](app/services/llm.py) has two stages:
+The live workflow in [Coding/app/services/llm.py](Coding/app/services/llm.py) has two stages:
 
 1. **Outline:** the configured `GEMINI_OUTLINE_MODEL` receives the validated brief and requests JSON containing a title, a stable character description (`character_bible`), and panel entries with scene descriptions and image prompts. `ComicOutline` validates the response, exact panel count, and sequential numbering.
 2. **Script:** `GEMINI_STORY_MODEL` receives the brief and validated outline, then expands each panel into caption, narration, dialogue, and an image prompt. `ComicScript` validates the response and checks its panel count and sequence against the request.
@@ -128,38 +128,41 @@ Both calls use `response_mime_type="application/json"`; responses are normalized
 
 ```text
 ComicCraft/
-├── app/
-│   ├── main.py                 # FastAPI factory and middleware
-│   ├── routes.py               # Web and JSON routes
-│   ├── config.py               # .env configuration
-│   ├── schemas.py              # Request, AI-output, and response schemas
-│   ├── exceptions.py
-│   ├── dependencies.py
-│   ├── services/
-│   │   ├── comic_service.py    # End-to-end orchestration
-│   │   ├── llm.py              # Gemini and demo story providers
-│   │   ├── images.py           # Placeholder, HF, and Diffusers providers
-│   │   ├── pdf_service.py      # PDF layout/export
-│   │   └── repository.py       # Safe filesystem storage
-│   ├── templates/              # Jinja2 pages
-│   └── static/                 # CSS, JS, icon, and PDF fonts
-├── tests/
-├── scripts/cleanup.py
+├── Coding/                     # Complete runnable application and developer tooling
+│   ├── app/
+│   │   ├── main.py             # FastAPI factory and middleware
+│   │   ├── routes.py           # Web and JSON routes
+│   │   ├── config.py           # .env configuration
+│   │   ├── schemas.py          # Request, AI-output, and response schemas
+│   │   ├── exceptions.py
+│   │   ├── dependencies.py
+│   │   ├── services/
+│   │   │   ├── comic_service.py  # End-to-end orchestration
+│   │   │   ├── llm.py            # Gemini and demo story providers
+│   │   │   ├── images.py         # Placeholder, HF, and Diffusers providers
+│   │   │   ├── pdf_service.py    # PDF layout/export
+│   │   │   └── repository.py     # Safe filesystem storage
+│   │   ├── templates/            # Jinja2 pages
+│   │   └── static/               # CSS, JS, icon, and PDF fonts
+│   ├── tests/
+│   ├── scripts/
+│   ├── .vscode/                 # Editor, launch, task, and test settings
+│   ├── .env.example
+│   ├── pyproject.toml
+│   ├── requirements*.txt
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── setup.sh / setup.bat
+│   ├── run.sh / run.bat
+│   └── android-setup.sh / android-run.sh
 ├── ComicCraft_Phase_Wise_Submission/  # Eight documentation phases (linked below)
-├── docs/screenshots/           # Captures from the running application
-├── storage/                    # Created at runtime; generated output is ignored
-├── .vscode/                    # Editor, launch, task, and test settings
-├── .env.example
-├── pyproject.toml
-├── requirements*.txt
-├── Dockerfile
-├── docker-compose.yml
-├── setup.sh / setup.bat
-├── run.sh / run.bat
-├── android-setup.sh / android-run.sh
-├── ANDROID-SPCK.md
+├── docs/                       # Supplementary documentation and screenshots
+├── README.md
 ├── QUICKSTART.md
-└── PROJECT_ANALYSIS.md
+├── ANDROID-SPCK.md
+├── PROJECT_ANALYSIS.md
+├── LICENSE
+└── .gitignore
 ```
 
 ## Fastest setup: no API keys
@@ -173,6 +176,7 @@ ComicCraft/
 ### Windows
 
 ```bat
+cd Coding
 setup.bat
 run.bat
 ```
@@ -180,6 +184,7 @@ run.bat
 ### macOS or Linux
 
 ```bash
+cd Coding
 chmod +x setup.sh run.sh
 ./setup.sh
 ./run.sh
@@ -192,6 +197,7 @@ Open <http://127.0.0.1:8000>. `IMAGE_PROVIDER=placeholder` creates local demo pa
 ### Manual installation
 
 ```bash
+cd Coding
 python -m venv .venv
 
 # Windows
@@ -210,24 +216,24 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ### VS Code
 
-1. Open the `ComicCraft` folder, not its parent folder.
+1. Open the `Coding` folder inside the repository; it contains the runnable application.
 2. Install the recommended Python, Pylance, Ruff, and Docker extensions when prompted.
 3. Run `setup.bat` on Windows or `./setup.sh` on macOS/Linux.
 4. Select the interpreter inside `.venv` if VS Code does not select it automatically.
 5. Press **F5** and choose **ComicCraft: FastAPI**, or run the **Run ComicCraft** task.
 6. Run tests from the Testing sidebar or with `python -m pytest`.
 
-The included `.vscode` folder contains launch, task, test, and formatting settings.
+The `Coding/.vscode` folder contains launch, task, test, and formatting settings.
 
 ### Spck Editor on Android
 
-Spck edits the files, while Termux runs the Python/FastAPI server. Extract the project to `Internal storage/Documents/ComicCraft`, open that folder in Spck, and run these commands in Termux:
+Spck edits the files, while Termux runs the Python/FastAPI server. Extract the project to `Internal storage/Documents/ComicCraft`, open the `Coding` subfolder in Spck, and run these commands in Termux:
 
 ```bash
 termux-setup-storage
 pkg update -y
 pkg install -y python python-pillow git rust clang make pkg-config libjpeg-turbo libpng freetype
-cd ~/storage/shared/Documents/ComicCraft
+cd ~/storage/shared/Documents/ComicCraft/Coding
 bash android-setup.sh
 bash android-run.sh
 ```
@@ -387,12 +393,13 @@ The documentation-compatible `POST /generate-comic/json` route is also available
 All tests force demo + placeholder mode and never call paid services:
 
 ```bash
+cd Coding
 source .venv/bin/activate       # Windows: .venv\Scripts\activate
 python -m pytest
 python -m pytest --cov=app
 ```
 
-The suite in [tests/](tests/) covers the health and home routes, the browser form flow, the JSON API lifecycle including PDF download, input validation and unknown-ID handling, the `/test-image` route, the demo story structure, and the Gemini retry/model-switch policy using a fake client.
+The suite in [tests/](Coding/tests/) covers the health and home routes, the browser form flow, the JSON API lifecycle including PDF download, input validation and unknown-ID handling, the `/test-image` route, the demo story structure, and the Gemini retry/model-switch policy using a fake client.
 
 Manual checks:
 
@@ -405,7 +412,7 @@ Manual checks:
 
 ## PDF Export
 
-[PDFService](app/services/pdf_service.py) builds the PDF during generation, before the preview appears, so **Download PDF** serves an already-saved file rather than starting a new export. Each document is A4 and contains:
+[PDFService](Coding/app/services/pdf_service.py) builds the PDF during generation, before the preview appears, so **Download PDF** serves an already-saved file rather than starting a new export. Each document is A4 and contains:
 
 - A cover page with the comic title, the starring character, tone, art style, the original story idea, and a reminder to review generated content.
 - One page per panel with the panel title, the artwork scaled to fit a 180 × 145 mm box while preserving its aspect ratio, then the caption, narration, and any dialogue lines.
@@ -434,9 +441,7 @@ For engineering-focused notes, see [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md), [
 
 ## Project Demonstration
 
-Demo video link will be added here.
-
-A demonstration can follow the workflow this repository actually supports:
+Demonstration media is intentionally not stored in this repository. A demonstration can follow the workflow this repository actually supports:
 
 1. Introduce the project and the problem it addresses.
 2. Show the resolved configuration at `/health` and on the home page status card.
@@ -450,18 +455,19 @@ A demonstration can follow the workflow this repository actually supports:
 ## Docker
 
 ```bash
+cd Coding
 cp .env.example .env
 docker compose up --build
 ```
 
-Generated files persist in `./storage`. The default compose configuration uses demo/placeholder mode unless `.env` enables providers.
+Generated files persist in `Coding/storage`. The default compose configuration uses demo/placeholder mode unless `.env` enables providers.
 
 ## Output and cleanup
 
 Every comic is stored at:
 
 ```text
-storage/comics/<comic-id>/
+Coding/storage/comics/<comic-id>/
 ├── comic.json
 ├── comic.pdf
 └── panels/
@@ -470,6 +476,7 @@ storage/comics/<comic-id>/
 Remove old output:
 
 ```bash
+cd Coding
 python scripts/cleanup.py --days 7 --dry-run
 python scripts/cleanup.py --days 7
 ```
@@ -482,7 +489,7 @@ python scripts/cleanup.py --days 7
 - **Local model is extremely slow:** use a CUDA GPU, lower image size/steps, or select hosted/placeholder mode.
 - **Port already used:** run `uvicorn app.main:app --port 8001`.
 - **Old `fpdf` conflict:** run `pip uninstall -y fpdf && pip install --force-reinstall fpdf2`.
-- **Generated output consumes disk:** use `scripts/cleanup.py` regularly.
+- **Generated output consumes disk:** run the cleanup script in `Coding/scripts/cleanup.py` regularly.
 
 ## Production checklist
 
@@ -497,7 +504,7 @@ These reflect the current implementation:
 - Generation is synchronous within the request. There is no background queue or progress API, so a browser or client waits for the whole pipeline; live image providers can take minutes.
 - Panel count is limited to 3–8 per comic, and story prompts to 1500 characters.
 - The application has no authentication, quotas, or rate limiting, and no content moderation beyond prompt wording and input validation.
-- Storage is the local filesystem only. There is no database or object storage, and old comics accumulate until `scripts/cleanup.py` removes them.
+- Storage is the local filesystem only. There is no database or object storage, and old comics accumulate until the cleanup script removes them.
 - Application state lives in a single process, so it is not designed for multi-worker deployment.
 - Placeholder artwork is deterministic local drawing, not model-generated imagery. Live story and image generation require your own Gemini key or Hugging Face token, and local Diffusers needs a large model download and ideally a GPU.
 - Image fallback covers per-panel generation failures. A missing or invalid Hugging Face token raises a configuration error at provider construction instead of falling back to placeholder art.
@@ -516,4 +523,4 @@ These are **possible future work**, not existing features:
 
 ## License
 
-Application code: MIT. Bundled DejaVu fonts retain their own license in `app/static/fonts/LICENSE-DejaVu.txt`.
+Application code: MIT. Bundled DejaVu fonts retain their own license in `Coding/app/static/fonts/LICENSE-DejaVu.txt`.

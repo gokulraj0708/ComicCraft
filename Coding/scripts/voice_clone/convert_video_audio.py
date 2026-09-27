@@ -1,4 +1,4 @@
-"""Convert the narration of the ComicCraft videos into the reference voice.
+"""Convert a source narration into a supplied reference voice.
 
 Reads a source narration WAV, converts it to the speaker of a reference
 recording (voice conversion: the content, wording and timing are preserved,
